@@ -10,10 +10,21 @@ int main()
 {
   std::cout << "Starting Lexer Engine Test..." << std::endl;
   std::vector<RegexPattern> patterns = {
-    RegexPattern("[a-zA-Z_][a-zA-Z0-9_]*", "IDENTIFIER"),
+    RegexPattern("[a-zA-Z][a-zA-Z0-9_]*", "IDENTIFIER"),
+    RegexPattern("#[^\n]*",
+                 "COMMENT"), // Match everything except newline after #
+    RegexPattern("\\\"\\\"\\\"[\\s\\S]*\\\"\\\"\\\"", "MULTILINE_STRING"),
+    RegexPattern("\\\"[^\\\"\\n]*\\\"", "STRING"),
     RegexPattern("\\d+", "NUMBER"),
     RegexPattern("\\s+", "WHITESPACE"),
     RegexPattern("\\d+\\.\\d+", "FLOAT"),
+    RegexPattern("\\+", "PLUS"),
+    RegexPattern("\\*", "STAR"),
+    RegexPattern("\\*\\*", "POWER"),
+    RegexPattern("-", "MINUS"),
+    RegexPattern("/", "SLASH"),
+    RegexPattern("==", "EQEQ"),
+    RegexPattern("=", "EQUALS")
   };
 
   std::cout << "Creating NFA..." << std::endl;
@@ -38,6 +49,32 @@ int main()
     RegexLexer lexer(pattern.pattern);
     std::vector<Token> tokens = lexer.tokenize();
     std::cout << "Lexed " << tokens.size() << " tokens." << std::endl;
+
+    std::cout << "Tokens for pattern \"" << pattern.pattern
+              << "\":" << std::endl;
+    for (auto &tk : tokens) {
+      if (tk.type == TokenType::CHAR)
+        std::cout << " CHAR('"
+                  << (tk.value == '\n' ? "\\n" : std::string(1, tk.value))
+                  << "')";
+      else if (tk.type == TokenType::CHAR_CLASS)
+        std::cout << " CHAR_CLASS";
+      else if (tk.type == TokenType::LPAREN)
+        std::cout << " LPAREN";
+      else if (tk.type == TokenType::RPAREN)
+        std::cout << " RPAREN";
+      else if (tk.type == TokenType::STAR)
+        std::cout << " STAR";
+      else if (tk.type == TokenType::PIPE)
+        std::cout << " PIPE";
+      else if (tk.type == TokenType::PLUS)
+        std::cout << " PLUS";
+      else if (tk.type == TokenType::QUESTION)
+        std::cout << " QUESTION";
+      else if (tk.type == TokenType::END)
+        std::cout << " END";
+    }
+    std::cout << std::endl;
 
     RegexParser parser(tokens);
     auto ASTroot = parser.parse();
@@ -94,6 +131,25 @@ int main()
     "12.34", // match
     ".567", // reject
     "89.", // reject
+    "+", // match
+    "*", // match
+    "**", // match
+    "-", // match
+    "/", // match
+    "==", // match EQEQ
+    "=", // match EQUALS
+    "!==", // reject
+    "===", // reject
+    "# this is a comment", // match
+    "# comment with newline\nnext line", // reject
+    "\"\"\"This is a\nmultiline string\"\"\"", // match
+    "\"\"\"Unterminated string, should reject", // reject
+    "\"\"\"Simple multiline\"\"\"", // should match
+    "\"\"\"Multi\nline\nstring\"\"\"", // should match
+    "\"\"\"String with \"quotes\" inside\"\"\"", // should match
+    "\"\"\"String with \"\"double quotes\"\" inside\"\"\"", // should match
+    "\"regular string\"", // match
+    "\"unterminated string, should reject" // reject
   };
   for (const auto &str : testStrings) {
     MatchResult match = table.matches(str);

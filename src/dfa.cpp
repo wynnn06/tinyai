@@ -139,28 +139,43 @@ DFA SubsetConstruction::getDFA() { return std::move(dfa); }
 
 MatchResult TransitionTable::matches(const std::string &str)
 {
-  if (startStateId == -1)
-    return { false, std::nullopt };
+  std::cout << "Matching string length " << str.length() << ": '";
+  for (char c : str) {
+    if (c == '\n')
+      std::cout << "\\n";
+    else if (c == '\r')
+      std::cout << "\\r";
+    else
+      std::cout << c;
+  }
+  std::cout << "'" << std::endl;
 
   int current = startStateId;
 
-  for (char c : str) {
-    if (symbolToId.find(c) == symbolToId.end())
+  for (size_t i = 0; i < str.length(); i++) {
+    char c = str[i];
+    if (symbolToId.find(c) == symbolToId.end()) {
+      std::cout << "Failed at position " << i << ", char '" << c
+                << "' not in alphabet" << std::endl;
       return { false, std::nullopt };
+    }
 
-    int symbolId = symbolToId[c];
-    int next = table[current][symbolId];
-
-    if (next == -1)
+    int next = table[current][symbolToId[c]];
+    if (next == -1) {
+      std::cout << "Failed at position " << i << ", no transition from state "
+                << current << " on char '" << c << "'" << std::endl;
       return { false, std::nullopt };
-
+    }
     current = next;
   }
 
-  if (acceptStateIds.find(current) != acceptStateIds.end()) {
-    return { true, stateTokenTypes[current] };
-  }
-  return { false, std::nullopt };
+  bool accepts = acceptStateIds.find(current) != acceptStateIds.end();
+  std::cout << "Ended in state " << current
+            << (accepts ? " (accepting)" : " (non-accepting)") << std::endl;
+
+  return { accepts,
+           accepts ? std::optional<std::string>{ stateTokenTypes[current] }
+                   : std::nullopt };
 }
 
 TransitionTable TransitionTableBuilder::build()
@@ -176,6 +191,17 @@ TransitionTable TransitionTableBuilder::build()
     alphabet.insert(trans.symbol);
   }
   table.alphabet = std::vector<char>(alphabet.begin(), alphabet.end());
+
+  std::cout << "Alphabet contents: ";
+  for (char c : alphabet) {
+    if (c == '"')
+      std::cout << "\\\"";
+    else if (c == '\n')
+      std::cout << "\\n";
+    else
+      std::cout << c;
+  }
+  std::cout << std::endl;
 
   for (size_t i = 0; i < table.alphabet.size(); i++) {
     table.symbolToId[table.alphabet[i]] = i;
