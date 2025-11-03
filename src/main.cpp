@@ -1,10 +1,21 @@
 #include "./dfa.hpp"
 #include "./nfa.hpp"
 #include "./regex_parser.hpp"
-#include "./engine.hpp"
+#include "./lexer.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+std::string readFileToString(const std::string &filename)
+{
+  std::ifstream file(filename);
+  std::ostringstream buffer;
+  buffer << file.rdbuf();
+  return buffer.str();
+}
 
 int main()
 {
@@ -30,46 +41,9 @@ int main()
   TransitionTableGenerator tableGenerator(patterns);
   TransitionTable table = tableGenerator.generate();
 
-  std::cout << "Matching strings: " << std::endl;
-  std::vector<std::string> testStrings = {
-    "myVariable", // match
-    "12345", // match
-    "   ", // match
-    "myVariable2", // match
-    "my_Variable", // match
-    "0myVariable", // reject
-    "my Variable", // reject
-    "123abc", // reject
-    "12.34", // match
-    ".567", // reject
-    "89.", // reject
-    "+", // match
-    "*", // match
-    "**", // match
-    "-", // match
-    "/", // match
-    "==", // match EQEQ
-    "=", // match EQUALS
-    "!==", // reject
-    "===", // reject
-    "# this is a comment", // match
-    "# comment with newline\nnext line", // reject
-    "\"\"\"This is a\nmultiline string\"\"\"", // match
-    "\"\"\"Unterminated string, should reject", // reject
-    "\"\"\"Simple multiline\"\"\"", // should match
-    "\"\"\"Multi\nline\nstring\"\"\"", // should match
-    "\"\"\"String with \"quotes\" inside\"\"\"", // should match
-    "\"\"\"String with \"\"double quotes\"\" inside\"\"\"", // should match
-    "\"regular string\"", // match
-    "\"unterminated string, should reject" // reject
-  };
-  for (const auto &str : testStrings) {
-    MatchResult match = table.matches(str);
-    std::cout << "Test against: " << str << " -> "
-              << (match.matched ? "ACCEPT" : "REJECT")
-              << (match.matched ? " (" + *match.tokenType + ")" : "")
-              << std::endl;
-  }
+  TableDrivenLexer lexer(table);
+  std::string input = readFileToString("test.ai");
+  lexer.lex(input);
 
   return 0;
 }
