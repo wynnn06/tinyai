@@ -12,18 +12,21 @@ This project implements a table-driven lexer that combines multiple regular expr
   - **nfa.cpp**: Implementation of the NFA functionality.
   - **dfa.hpp**: Header file for the DFA representation.
   - **dfa.cpp**: Implementation of the DFA functionality.
-  - **engine.hpp**: Header file for combining regex patterns.
-  - **engine.cpp**: Implementation of the regex combination logic.
+  - **engine.hpp**: Header file for combining regex patterns. UNUSED.
+  - **engine.cpp**: Implementation of the regex combination logic. UNUSED.
 
+**ALL INCLUDE CONTENTS ARE UNUSED**
 - **include/**: Contains public interface headers for the lexer.
   - **table_driven_lexer/**: Namespace for the lexer components.
     - **regex_parser.hpp**: Public interface for regex parsing.
     - **nfa.hpp**: Public interface for NFA functionality.
     - **dfa.hpp**: Public interface for DFA functionality.
 
+**ALL EXAMPLE CONTENTS ARE UNUSED**
 - **examples/**: Contains example implementations.
   - **combine_regexes.cpp**: Demonstrates how to combine multiple regex patterns.
 
+**ALL TEST CONTENTS ARE UNUSED**
 - **tests/**: Contains unit tests for the project.
   - **test_regex.cpp**: Tests for regex parsing and NFA/DFA functionalities.
   - **CMakeLists.txt**: Configuration for building tests.
